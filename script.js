@@ -50,7 +50,7 @@ var skipLinks = [];
  * Scroll the webpage
  */
 function loadWebpage() {
-    if (document.querySelectorAll(".tiktok-qmnyxf-SvgContainer").length === 0) { // Checks if the SVG loading animation is present in the DOM
+    if (document.querySelectorAll(".tiktok-qmnyxf-SvgContainer, .css-14u92jj-5e6d46e3--SvgContainer").length === 0) { // Checks if the SVG loading animation is present in the DOM
         !scriptOptions.advanced.get_array_after_scroll && scriptOptions.advanced.delete_from_dom && window.scrollTo({ top: document.body.scrollHeight - (window.outerHeight * (window.devicePixelRatio || 1)), behavior: 'smooth' }); // If items from the DOM are removed, the page must be scrolled a little bit higher, so that the TikTok refresh is triggered
         setTimeout(() => {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); // Scroll to the bottom of the page
@@ -69,7 +69,7 @@ function loadWebpage() {
                     }, Math.floor(Math.random() * scriptOptions.scrolling_max_time + scriptOptions.scrolling_min_time));
                 } else {
                     setTimeout(() => {
-                        if (document.querySelectorAll(".tiktok-qmnyxf-SvgContainer").length === 0 && height == document.body.scrollHeight) { // By scrolling, the webpage height doesn't change, so let's download the txt file
+                        if (document.querySelectorAll(".tiktok-qmnyxf-SvgContainer, .css-14u92jj-5e6d46e3--SvgContainer").length === 0 && height == document.body.scrollHeight) { // By scrolling, the webpage height doesn't change, so let's download the txt file
                             scriptOptions.node.isResolveTime = true;
                             ytDlpScript();
                             skipLinks = []; // Restore so that the items can be re-downloaded
@@ -92,7 +92,7 @@ function loadWebpage() {
  */
 function addArray() {
     const e2eLinks = "[data-e2e=user-liked-item], [data-e2e=music-item], [data-e2e=user-post-item], [data-e2e=favorites-item], [data-e2e=challenge-item], [data-e2e=search_top-item]";
-    let container = document.querySelectorAll(scriptOptions.advanced.get_video_container_from_e2e ? e2eLinks : ".tiktok-1uqux2o-DivItemContainerV2, .css-ps7kg7-DivThreeColumnItemContainer, .tiktok-x6y88p-DivItemContainerV2, .css-1uqux2o-DivItemContainerV2, .css-x6y88p-DivItemContainerV2, .css-1soki6-DivItemContainerForSearch, .css-ps7kg7-DivThreeColumnItemContainer"); // Class of every video container
+    let container = document.querySelectorAll(scriptOptions.advanced.get_video_container_from_e2e ? e2eLinks : ".tiktok-1uqux2o-DivItemContainerV2, .css-ps7kg7-DivThreeColumnItemContainer, .tiktok-x6y88p-DivItemContainerV2, .css-1uqux2o-DivItemContainerV2, .css-x6y88p-DivItemContainerV2, .css-1soki6-DivItemContainerForSearch, .css-ps7kg7-DivThreeColumnItemContainer, .css-16cwaxc-5e6d46e3--DivContainer-5e6d46e3--StyledDivContainerV2"); // Class of every video container
     if (scriptOptions.advanced.get_video_container_from_e2e) container = Array.from(container).map(item => item.parentElement);
     for (const tikTokItem of container) {
         if (!tikTokItem) continue; // Skip nullish results
