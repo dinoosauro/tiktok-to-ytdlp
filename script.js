@@ -16,7 +16,7 @@ var scriptOptions = {
         log_link_error: true, // Write in the console if there's an error when fetching the link.
         maximum_downloads: Infinity, // Change this to a finite number to fetch only a specific number of values. Note that a) more elements might be added to the final file if available; and b) "get_array_after_scroll" must be set to false.
         delete_from_dom: false, // Automatically delete the added items from the DOM. This works only if "get_array_after_scroll" is disabled. This is suggested only if you need to download a page with lots of videos
-        get_video_container_from_e2e: false // Use the [data-e2e] attributes for getting the video container, instead of the normal CSS class.
+        get_video_container_from_e2e: true // Use the [data-e2e] attributes for getting the video container, instead of the normal CSS class.
     },
     node: {
         resolve: null,
@@ -92,7 +92,7 @@ function loadWebpage() {
  */
 function addArray() {
     const e2eLinks = "[data-e2e=user-liked-item], [data-e2e=music-item], [data-e2e=user-post-item], [data-e2e=favorites-item], [data-e2e=challenge-item], [data-e2e=search_top-item]";
-    let container = document.querySelectorAll(scriptOptions.advanced.get_video_container_from_e2e ? e2eLinks : ".tiktok-1uqux2o-DivItemContainerV2, .css-ps7kg7-DivThreeColumnItemContainer, .tiktok-x6y88p-DivItemContainerV2, .css-1uqux2o-DivItemContainerV2, .css-x6y88p-DivItemContainerV2, .css-1soki6-DivItemContainerForSearch, .css-ps7kg7-DivThreeColumnItemContainer, .css-16cwaxc-5e6d46e3--DivContainer-5e6d46e3--StyledDivContainerV2, .s-14c6gjr-5e6d46e3--DivItemContainerV2, .css-14c6gjr-5e6d46e3--DivItemContainerV2"); // Class of every video container
+    let container = document.querySelectorAll(scriptOptions.advanced.get_video_container_from_e2e ? e2eLinks : ".tiktok-1uqux2o-DivItemContainerV2, .css-ps7kg7-DivThreeColumnItemContainer, .tiktok-x6y88p-DivItemContainerV2, .css-1uqux2o-DivItemContainerV2, .css-x6y88p-DivItemContainerV2, .css-1soki6-DivItemContainerForSearch, .css-ps7kg7-DivThreeColumnItemContainer, .css-16cwaxc-5e6d46e3--DivContainer-5e6d46e3--StyledDivContainerV2, .s-14c6gjr-5e6d46e3--DivItemContainerV2, .css-14c6gjr-5e6d46e3--DivItemContainerV2, .css-1gb1sr8-0be0dc34--DivItemContainerV2, .css-1gb1sr8-0be0dc34--DivItemContainerV2"); // Class of every video container
     if (scriptOptions.advanced.get_video_container_from_e2e) container = Array.from(container).map(item => item.parentElement);
     for (const tikTokItem of container) {
         if (!tikTokItem) continue; // Skip nullish results
