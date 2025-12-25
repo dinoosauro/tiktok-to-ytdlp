@@ -90,7 +90,7 @@ function loadWebpage() {
  * Elaborate items in the page
  */
 function addArray() {
-    const e2eLinks = "[data-e2e=user-liked-item], [data-e2e=music-item], [data-e2e=user-post-item], [data-e2e=favorites-item], [data-e2e=challenge-item], [data-e2e=search_top-item]";
+    const e2eLinks = "[data-e2e=user-liked-item], [data-e2e=music-item], [data-e2e=user-post-item], [data-e2e=favorites-item], [data-e2e=challenge-item], [data-e2e=search_top-item], [data-e2e=user-repost-item]";
     let container = Array.from(document.querySelectorAll(e2eLinks)).map(item => item.parentElement); // Class of every video container
     for (const tikTokItem of container) {
         if (!tikTokItem) continue; // Skip nullish results
