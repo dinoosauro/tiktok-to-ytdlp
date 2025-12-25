@@ -19,9 +19,7 @@ downloaded. Press Ctrl (or Cmd if you are on a Mac) + Shift + I to open the
 Developer Tools. Go into the Console tab on the top (if you don't see it, click
 on the `>>`) and paste the content you can find in the
 [script.js](https://raw.githubusercontent.com/Dinoosauro/tiktok-to-ytdlp/main/script.js)
-file. If you prefer a minified version, you can find that
-[here](https://raw.githubusercontent.com/Dinoosauro/tiktok-to-ytdlp/main/script.min.js).
-Press enter.
+file. Press enter.
 
 ### Next steps
 
