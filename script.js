@@ -7,6 +7,7 @@ var scriptOptions = {
     output_name_type: 2, // Put a string to specify a specific name of the file. Put 0 for trying to fetching it using data tags, 1 for fetching it from the window title, 2 for fetching it from the first "h1" element. _Invalid_ inputs will use the standard "TikTokLinks.txt". This will be edited if a different value is passed from the startDownload() function.
     adapt_text_output: true, // Replace characters that are prohibited on Windows
     allow_images: true, // Save also TikTok Image URLs
+    keep_only_images: false, // Save only TikTok Image URLs
     export_format: "txt", // Put "json" to save everything as a JSON file.
     exclude_from_json: [], // If you plan to export the content in a JSON file, here you can exclude some properties from the JSON output. You can exclude "url", "views", "caption".
     advanced: {
@@ -97,13 +98,14 @@ function addArray() {
         if (!tikTokItem) continue; // Skip nullish results
         const getLink = scriptOptions.advanced.get_link_by_filter ? Array.from(tikTokItem.querySelectorAll("a")).filter(e => e.href.indexOf("/video/") !== -1 || e.href.indexOf("/photo/") !== -1)[0]?.href : tikTokItem.querySelector(`[data-e2e=user-post-item-desc], ${e2eLinks}`)?.querySelector("a")?.href; // If the new filter method is selected, the script will look for the first link that contains a video link structure. Otherwise, the script'll look for data tags that contain the video URL.
         if (!scriptOptions.allow_images && getLink.indexOf("/photo/") !== -1) continue; // Avoid adding photo if the user doesn't want to.
+        if (scriptOptions.allow_images && scriptOptions.keep_only_images && getLink.indexOf("/photo/") === -1) continue; // Skip the link if the user wants to download only slideshows.
         if (scriptOptions.advanced.check_nullish_link && (getLink ?? "") === "") { // If the script needs to check if the link is nullish, and it's nullish...
             if (scriptOptions.advanced.log_link_error) console.log("SCRIPT ERROR: Failed to get link!"); // If the user wants to print the error in the console, write it
             continue; // And, in general, continue with the next link.
         }
         if (skipLinks.indexOf(getLink) === -1) {
             const views = tikTokItem.querySelector("[class$=\"-SpanPlayCount\"], [data-e2e=video-views]")?.innerHTML ?? "0";
-            const caption = (tikTokItem.querySelector("[class$=\"-DivDesContainer\"] a span"))?.textContent ?? tikTokItem.querySelector("[class$=\"-AVideoContainer\"] picture img")?.alt ?? Array.from(tikTokItem.querySelector("[data-e2e=search-card-video-caption]").querySelectorAll("a, span")).map(i => i.textContent).filter(i => typeof i !== "undefined").join("") ?? "";
+            const caption = (tikTokItem.querySelector("[class$=\"-DivDesContainer\"] a span"))?.textContent ?? tikTokItem.querySelector("[class$=\"-AVideoContainer\"] picture img")?.alt ?? Array.from(tikTokItem.querySelector("[data-e2e=search-card-video-caption]")?.querySelectorAll("a, span") ?? []).map(i => i.textContent).filter(i => typeof i !== "undefined").join("") ?? "";
             containerMap.set(getLink, { views: `${views.replace(".", "").replace("K", "00").replace("M", "00000")}${(views.indexOf("K") !== -1 || views.indexOf("M") !== -1) && views.indexOf(".") === -1 ? "0" : ""}`, caption })
         }
     }

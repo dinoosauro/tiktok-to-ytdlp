@@ -17,6 +17,12 @@
                 <input type="checkbox" bind:checked={$Settings.allow_images} /> Download
                 also images
             </label>
+            {#if $Settings.allow_images}
+            <br>
+            <label class="flex hcenter autoGap">
+                <input type="checkbox" bind:checked={$Settings.keep_only_images} /> Save only images
+            </label>
+            {/if}
         </Card><br />
         <Card type={1}>
             <h3>File name options:</h3>

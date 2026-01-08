@@ -8,6 +8,7 @@ let Settings = writable({
     output_name_type: 2, // Put a string to specify a specific name of the file. Put 0 for trying to fetching it using data tags, 1 for fetching it from the window title, 2 for fetching it from the first "h1" element. _Invalid_ inputs will use the standard "TikTokLinks.txt". This will be edited if a different value is passed from the startDownload() function.
     adapt_text_output: true, // Replace characters that are prohibited on Windows
     allow_images: true, // Save also TikTok Image URLs
+    keep_only_images: false, // Save only TikTok Image URLs
     export_format: "txt",
     exclude_from_json: [], // If you plan to export the content in a JSON file, here you can exclude some properties from the JSON output. You can exclude "url", "views", "caption".
     advanced: {
