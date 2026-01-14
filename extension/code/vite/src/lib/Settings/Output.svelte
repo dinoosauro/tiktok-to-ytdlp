@@ -23,6 +23,11 @@
                 <input type="checkbox" bind:checked={$Settings.keep_only_images} /> Save only images
             </label>
             {/if}
+            <br>
+            <label class="flex hcenter autoGap">
+                <input type="checkbox" bind:checked={$Settings.get_img_link}>
+                If a slideshow is open, download the images of the slideshow.
+            </label>
         </Card><br />
         <Card type={1}>
             <h3>File name options:</h3>

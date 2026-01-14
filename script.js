@@ -10,6 +10,7 @@ var scriptOptions = {
     keep_only_images: false, // Save only TikTok Image URLs
     export_format: "txt", // Put "json" to save everything as a JSON file.
     exclude_from_json: [], // If you plan to export the content in a JSON file, here you can exclude some properties from the JSON output. You can exclude "url", "views", "caption".
+    get_img_link: true, // In case a TikTok slideshow is open, fetch the image URLs instead of the video URL.
     advanced: {
         get_array_after_scroll: false, // Gets the item links after the webpage is fully scrolled, and not after every scroll.
         get_link_by_filter: true, // Get the website link by inspecting all the links in the container div, instead of looking for data references.
@@ -50,6 +51,15 @@ var skipLinks = [];
  * Scroll the webpage
  */
 function loadWebpage() {
+    function downloadFile() {
+        scriptOptions.node.isResolveTime = true;
+        ytDlpScript();
+        skipLinks = []; // Restore so that the items can be re-downloaded
+    }
+    if (window.location.href.indexOf("/photo/") !== -1) {
+        downloadFile();
+        return;
+    }
     if (!document.querySelector('[class$="--DivLoadingContainer"]')) { // Checks if the SVG loading animation is present in the DOM
         !scriptOptions.advanced.get_array_after_scroll && scriptOptions.advanced.delete_from_dom && window.scrollTo({ top: document.body.scrollHeight - (window.outerHeight * (window.devicePixelRatio || 1)), behavior: 'smooth' }); // If items from the DOM are removed, the page must be scrolled a little bit higher, so that the TikTok refresh is triggered
         setTimeout(() => {
@@ -70,9 +80,7 @@ function loadWebpage() {
                 } else {
                     setTimeout(() => {
                         if (!document.querySelector('[class$="--DivLoadingContainer"]') && height == document.body.scrollHeight) { // By scrolling, the webpage height doesn't change, so let's download the txt file
-                            scriptOptions.node.isResolveTime = true;
-                            ytDlpScript();
-                            skipLinks = []; // Restore so that the items can be re-downloaded
+                            downloadFile();
                         } else { // The SVG animation is still there, so there are other contents to load.
                             loadWebpage();
                         }
@@ -93,10 +101,17 @@ function loadWebpage() {
 function addArray() {
     const e2eLinks = "[data-e2e=user-liked-item], [data-e2e=music-item], [data-e2e=user-post-item], [data-e2e=favorites-item], [data-e2e=challenge-item], [data-e2e=search_top-item], [data-e2e=user-repost-item], [data-e2e=search_video-item]";
     let container = Array.from(document.querySelectorAll(e2eLinks)).map(item => item.parentElement); // Class of every video container
+    if (window.location.href.indexOf("/photo/") !== -1 && scriptOptions.get_img_link) container = [document.createElement("div")]; // Let's put a div placeholder. For this reason, the script will check if the div has some child nodes, and, if not, to fetch metadata will use the entire document.
     for (let tikTokItem of container) {
         if (tikTokItem.getAttribute("data-e2e") === "search_video-item") tikTokItem = tikTokItem.parentElement;
         if (!tikTokItem) continue; // Skip nullish results
-        const getLink = scriptOptions.advanced.get_link_by_filter ? Array.from(tikTokItem.querySelectorAll("a")).filter(e => e.href.indexOf("/video/") !== -1 || e.href.indexOf("/photo/") !== -1)[0]?.href : tikTokItem.querySelector(`[data-e2e=user-post-item-desc], ${e2eLinks}`)?.querySelector("a")?.href; // If the new filter method is selected, the script will look for the first link that contains a video link structure. Otherwise, the script'll look for data tags that contain the video URL.
+        let getLink = scriptOptions.advanced.get_link_by_filter ? Array.from(tikTokItem.querySelectorAll("a")).filter(e => e.href.indexOf("/video/") !== -1 || e.href.indexOf("/photo/") !== -1)[0]?.href : tikTokItem.querySelector(`[data-e2e=user-post-item-desc], ${e2eLinks}`)?.querySelector("a")?.href; // If the new filter method is selected, the script will look for the first link that contains a video link structure. Otherwise, the script'll look for data tags that contain the video URL.
+        if (window.location.href.indexOf("/photo/") !== -1 && scriptOptions.get_img_link) { // Get the image URLs
+            const images = new Set(Array.from(document.querySelectorAll(`[class*="--DivVideoContainer"] .swiper-slide > img[class*="--ImgPhotoSlide"], [class*="--DivPhotoPlayerContainer"] .swiper-slide > img[class*="--ImgPhotoSlide"]`)).map(i => i.src));
+            if (images.size > 0) {
+                getLink = scriptOptions.export_format === "json" ? Array.from(images) : Array.from(images).join("\n");
+            }
+        }
         if (!scriptOptions.allow_images && getLink.indexOf("/photo/") !== -1) continue; // Avoid adding photo if the user doesn't want to.
         if (scriptOptions.allow_images && scriptOptions.keep_only_images && getLink.indexOf("/photo/") === -1) continue; // Skip the link if the user wants to download only slideshows.
         if (scriptOptions.advanced.check_nullish_link && (getLink ?? "") === "") { // If the script needs to check if the link is nullish, and it's nullish...
@@ -105,9 +120,25 @@ function addArray() {
         }
         if (skipLinks.indexOf(getLink) === -1) {
             const views = tikTokItem.querySelector("[class$=\"-SpanPlayCount\"], [data-e2e=video-views]")?.innerHTML ?? "0";
-            const caption = (tikTokItem.querySelector("[class$=\"-DivDesContainer\"] a span"))?.textContent ?? tikTokItem.querySelector("[class$=\"-AVideoContainer\"] picture img")?.alt ?? Array.from(tikTokItem.querySelector("[data-e2e=search-card-video-caption]")?.querySelectorAll("a, span") ?? []).map(i => i.textContent).filter(i => typeof i !== "undefined").join("") ?? "";
-            containerMap.set(getLink, { views: `${views.replace(".", "").replace("K", "00").replace("M", "00000")}${(views.indexOf("K") !== -1 || views.indexOf("M") !== -1) && views.indexOf(".") === -1 ? "0" : ""}`, caption })
+            const caption = (tikTokItem.querySelector("[class$=\"-DivDesContainer\"] a span"))?.textContent ?? tikTokItem.querySelector("[class$=\"-AVideoContainer\"] picture img")?.alt ?? Array.from((tikTokItem.firstChild?.parentElement ?? document.body).querySelector("[data-e2e=search-card-video-caption], [data-e2e=video-desc], [data-e2e=browse-video-desc]")?.querySelectorAll("a, span") ?? []).map(i => i.textContent).filter(i => typeof i !== "undefined").join("") ?? "";
+            containerMap.set(getLink, { 
+                views: parseNumberForJson(views), 
+                caption,
+                likes: parseNumberForJson((tikTokItem.firstChild?.parentElement ?? document.body).querySelector(`[data-e2e="like-count"], [data-e2e="browse-like-count"]`)?.textContent),
+                favorites: parseNumberForJson((tikTokItem.firstChild?.parentElement ?? document.body).querySelector(`[data-e2e="undefined-count"]`)?.textContent),
+                comments: parseNumberForJson((tikTokItem.firstChild?.parentElement ?? document.body).querySelector(`[data-e2e="comment-count"], [data-e2e="browse-comment-count"]`)?.textContent),
+                shares: parseNumberForJson((tikTokItem.firstChild?.parentElement ?? document.body).querySelector(`[data-e2e="share-count"]`)?.textContent),
+            })
         }
+    }
+    /**
+     * Convert the "K", "M" in TikTok's number strings to number.
+     * @param {string} views the string to parse
+     * @returns the parsed string
+     */
+    function parseNumberForJson(views) {
+        if (typeof views === "undefined") return;
+        return `${views.replace(".", "").replace("K", "00").replace("M", "00000")}${(views.indexOf("K") !== -1 || views.indexOf("M") !== -1) && views.indexOf(".") === -1 ? "0" : ""}`;
     }
     if (!scriptOptions.advanced.get_array_after_scroll && scriptOptions.advanced.delete_from_dom) { // Delete all the items from the DOM. Only the last 20 items will be kept.
         for (const item of Array.from(container).slice(0, container.length - 20)) item.remove();
